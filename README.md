@@ -22,25 +22,38 @@ implementations based on the interfaces - will need to be refactored.
 
 A new major version number will be applied to this library when PSR-6 passes.
 
-Implementations
-===============
+Completed Implementations
+=========================
+The below implementations are complete and working.
 
 Ephemeral
-----------
+---------
 The ephemeral implementation is a single-session storage that loses it's data when the session ends. This is useful
 for testing or a default implementation in lack of a real cache storage device. Or if you just really don't care about
 the volatility of your data.
 
+Redis
+-----
+Redis support is fully integrated via the Predis library. You'll need to add `"predis/predis": "~0.8"` to your
+`composer.json` file to enable Redis support.
+
+Planned Implementations
+=======================
+The below implementations planned, and will be available in the future (contributions welcome!).
+
 Doctrine
 --------
+Doctrine support is planned by providing an entity manager to the constructor. This allows for seamless integration
+into your data model with your current Doctrine application.
+
 Consider: native PDO as well?
 
 DynamoDB
 --------
+Using the AWS SDK, access to scalable NoSQL databases is a valid use-case for caching.
+
 Consider: SimpleDB?
 
 Memcached
 ---------
-
-Redist
-------
+Good ol' memcache. Consider which PHP module to use, should this be abstracted?

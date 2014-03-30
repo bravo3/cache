@@ -22,7 +22,7 @@ class EphemeralCachePool implements PoolInterface
      * @return \Bravo3\Cache\ItemInterface
      *   The corresponding Cache Item.
      * @throws \Bravo3\Cache\InvalidArgumentException
-     *   If the $key string is not a legal value a \Psr\Cache\InvalidArgumentException
+     *   If the $key string is not a legal value an InvalidArgumentException
      *   MUST be thrown.
      */
     public function getItem($key)

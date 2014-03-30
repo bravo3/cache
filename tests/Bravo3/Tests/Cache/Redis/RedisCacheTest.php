@@ -1,28 +1,35 @@
 <?php
-namespace Bravo3\Tests\Cache\Emphemeral;
+namespace Bravo3\Tests\Cache\Redis;
 
-use Bravo3\Cache\Ephemeral\EphemeralCacheItem;
-use Bravo3\Cache\Ephemeral\EphemeralCachePool;
+use Bravo3\Cache\Redis\RedisCacheItem;
+use Bravo3\Cache\Redis\RedisCachePool;
+use Predis\Client;
 
 /**
- * @group ephemeral
+ * @group redis
  */
-class EphemeralCacheTest extends \PHPUnit_Framework_TestCase
+class RedisCacheTest extends \PHPUnit_Framework_TestCase
 {
+
 
     /**
      * @small
      */
     public function testEphemeralCacheItem()
     {
-        $pool = new EphemeralCachePool();
+        $pool = new RedisCachePool();
+        $pool->setClient(new Client());
+
+        $pool->clear();
+        /** @var $item RedisCacheItem */
         $item = $pool->getItem('miss');
-        $this->assertTrue($item instanceof EphemeralCacheItem);
+        $this->assertTrue($item instanceof RedisCacheItem);
+        $this->assertFalse($item->exists());
         $this->assertEquals('miss', $item->getKey());
         $this->assertFalse($item->isHit());
-        $this->assertFalse($item->exists());
         $item->set('value');
         $this->assertTrue($item->isHit());
+        $this->assertEquals('value', $item->get('value'));
         $item->delete();
         $this->assertFalse($item->isHit());
     }
@@ -33,7 +40,7 @@ class EphemeralCacheTest extends \PHPUnit_Framework_TestCase
      */
     public function testEphemeralCacheGetItems()
     {
-        $pool = new EphemeralCachePool();
+        $pool = new RedisCachePool(new Client());
         $pool->clear();
 
         // Prep some data
@@ -46,19 +53,21 @@ class EphemeralCacheTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(3, $items->count());
 
         $index = 0;
-        /** @var $item EphemeralCacheItem */
+        /** @var $item RedisCacheItem */
         foreach ($items as $key => $item) {
             $index++;
-            $this->assertTrue($item instanceof EphemeralCacheItem);
+            $this->assertTrue($item instanceof RedisCacheItem);
             $this->assertTrue($item->isHit());
             $this->assertEquals('test'.$index, $key);
-            $this->assertSame($index, $item->get());
+
+            // NB: The value will become a string here!
+            $this->assertSame((string)$index, $item->get());
         }
 
         $this->assertEquals(3, $index);
 
         $item = $items->getItem('test2');
-        $this->assertTrue($item instanceof EphemeralCacheItem);
+        $this->assertTrue($item instanceof RedisCacheItem);
         $this->assertEquals(2, $item->get());
 
         $pool->clear();
@@ -76,7 +85,7 @@ class EphemeralCacheTest extends \PHPUnit_Framework_TestCase
      */
     public function testValidTtl()
     {
-        $pool = new EphemeralCachePool();
+        $pool = new RedisCachePool();
         $item = $pool->getItem('test');
 
         $dt = new \DateTime();
@@ -97,7 +106,7 @@ class EphemeralCacheTest extends \PHPUnit_Framework_TestCase
      */
     public function testInvalidTtl()
     {
-        $pool = new EphemeralCachePool();
+        $pool = new RedisCachePool();
         $item = $pool->getItem('test');
 
         $item->set('value', "hiya!");
@@ -105,3 +114,4 @@ class EphemeralCacheTest extends \PHPUnit_Framework_TestCase
 
 
 }
+ 

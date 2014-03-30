@@ -25,7 +25,7 @@ interface PoolInterface
      * @return \Bravo3\Cache\ItemInterface
      *   The corresponding Cache Item.
      * @throws \Bravo3\Cache\InvalidArgumentException
-     *   If the $key string is not a legal value a \Psr\Cache\InvalidArgumentException
+     *   If the $key string is not a legal value a \Bravo3\Cache\InvalidArgumentException
      *   MUST be thrown.
      */
     public function getItem($key);
