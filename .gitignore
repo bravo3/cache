@@ -1,3 +1,4 @@
 !.gitkeep
 /vendor/
 /coverage/
+/bin/
