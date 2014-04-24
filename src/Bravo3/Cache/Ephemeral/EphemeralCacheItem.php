@@ -131,7 +131,7 @@ class EphemeralCacheItem implements ItemInterface
      */
     public function exists()
     {
-        return false;
+        return $this->hit;
     }
 
 }

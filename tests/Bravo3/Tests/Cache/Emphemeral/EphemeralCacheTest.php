@@ -27,7 +27,6 @@ class EphemeralCacheTest extends \PHPUnit_Framework_TestCase
         $this->assertFalse($item->isHit());
     }
 
-
     /**
      * @small
      */
@@ -67,6 +66,23 @@ class EphemeralCacheTest extends \PHPUnit_Framework_TestCase
 
         $item = $items->getItem('test2');
         $this->assertNull($item);
+    }
+
+    /**
+     * @small
+     */
+    public function testPoolReferences()
+    {
+        $pool = new EphemeralCachePool();
+        $pool->clear();
+
+        // Prep some data
+        $item_a = $pool->getItem('test');
+        $item_a->set(1, null);
+
+        $item_b = $pool->getItem('test');
+        $this->assertTrue($item_b->exists());
+        $this->assertEquals(1, $item_b->get());
     }
 
     /**
