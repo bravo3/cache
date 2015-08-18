@@ -25,13 +25,20 @@ class OrmCachePool implements PoolInterface
     protected $entity_class;
 
     /**
+     * @var bool
+     */
+    protected $hash_keys;
+
+    /**
      * @param EntityManager $em           ORM EntityManager
      * @param string        $entity_class Class name of entity to use, defaults to `CacheEntity::class`
+     * @param bool          $hash_keys    MD5 keys to prevent illegal character issues
      */
-    public function __construct(EntityManager $em, $entity_class = null)
+    public function __construct(EntityManager $em, $entity_class = null, $hash_keys = false)
     {
         $this->em           = $em;
         $this->entity_class = $entity_class ?: CacheEntity::class;
+        $this->hash_keys    = $hash_keys;
     }
 
     /**
@@ -145,6 +152,28 @@ class OrmCachePool implements PoolInterface
 
         $this->em->flush();
 
+        return $this;
+    }
+
+    /**
+     * Get HashKeys
+     *
+     * @return boolean
+     */
+    public function getHashKeys()
+    {
+        return $this->hash_keys;
+    }
+
+    /**
+     * Set HashKeys
+     *
+     * @param boolean $hash_keys
+     * @return $this
+     */
+    public function setHashKeys($hash_keys)
+    {
+        $this->hash_keys = (bool)$hash_keys;
         return $this;
     }
 }

@@ -56,8 +56,10 @@ class OrmCacheItem implements ItemInterface
         }
 
         try {
+            $key = $this->transmuteKey($this->key);
+
             /** @var CacheEntityInterface $entity */
-            $entity = $this->pool->getEntityManager()->retrieve($this->pool->getEntityClass(), $this->key, false);
+            $entity = $this->pool->getEntityManager()->retrieve($this->pool->getEntityClass(), $key, false);
 
             $this->hit   = true;
             $this->value = $entity->getValue();
@@ -202,9 +204,25 @@ class OrmCacheItem implements ItemInterface
 
         /** @var CacheEntityInterface $entity */
         $entity = new $class();
-        $entity->setKey($this->key);
+        $entity->setKey($this->transmuteKey($this->key));
         $entity->setValue($value);
 
         return $entity;
+    }
+
+
+    /**
+     * Transmute the key into the form required for the ORM
+     *
+     * @param string $key
+     * @return string
+     */
+    protected function transmuteKey($key)
+    {
+        if ($this->pool->getHashKeys()) {
+            return md5($key);
+        } else {
+            return $key;
+        }
     }
 }

@@ -124,6 +124,7 @@ class DriverTest extends \PHPUnit_Framework_TestCase
             [new EphemeralCachePool()],
             [new RedisCachePool()],
             [new OrmCachePool($em)],
+            [new OrmCachePool($em, null, true)],
         ];
     }
 }
