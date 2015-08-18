@@ -68,6 +68,4 @@ class EphemeralCachePool implements PoolInterface
     {
         $this->pool = [];
     }
-
 }
- 

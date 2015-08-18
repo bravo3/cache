@@ -1,46 +1,42 @@
 <?php
 namespace Bravo3\Tests\Cache\Redis;
 
-use Bravo3\Cache\Redis\RedisCacheItem;
+use Bravo3\Cache\Ephemeral\EphemeralCachePool;
+use Bravo3\Cache\ItemCollection;
+use Bravo3\Cache\ItemInterface;
+use Bravo3\Cache\PoolInterface;
 use Bravo3\Cache\Redis\RedisCachePool;
-use Predis\Client;
 
 /**
  * @group redis
  */
-class RedisCacheTest extends \PHPUnit_Framework_TestCase
+class DriverTest extends \PHPUnit_Framework_TestCase
 {
-
-
     /**
-     * @small
+     * @dataProvider poolProvider
+     * @param PoolInterface $pool
      */
-    public function testEphemeralCacheItem()
+    public function testItem(PoolInterface $pool)
     {
-        $pool = new RedisCachePool();
-        $pool->setClient(new Client());
-
         $pool->clear();
-        /** @var $item RedisCacheItem */
         $item = $pool->getItem('miss');
-        $this->assertTrue($item instanceof RedisCacheItem);
+        $this->assertTrue($item instanceof ItemInterface);
         $this->assertFalse($item->exists());
         $this->assertEquals('miss', $item->getKey());
         $this->assertFalse($item->isHit());
         $item->set('value');
         $this->assertTrue($item->isHit());
-        $this->assertEquals('value', $item->get('value'));
+        $this->assertEquals('value', $item->get());
         $item->delete();
         $this->assertFalse($item->isHit());
     }
 
-
     /**
-     * @small
+     * @dataProvider poolProvider
+     * @param PoolInterface $pool
      */
-    public function testEphemeralCacheGetItems()
+    public function testGetItems(PoolInterface $pool)
     {
-        $pool = new RedisCachePool(new Client());
         $pool->clear();
 
         // Prep some data
@@ -49,25 +45,24 @@ class RedisCacheTest extends \PHPUnit_Framework_TestCase
         $pool->getItem('test3')->set(3);
 
         // Check we have 3 cache hits
+        /** @var ItemCollection $items */
         $items = $pool->getItems(['test1', 'test2', 'test3']);
-        $this->assertEquals(3, $items->count());
+        $this->assertCount(3, $items);
 
         $index = 0;
-        /** @var $item RedisCacheItem */
+        /** @var $item ItemInterface */
         foreach ($items as $key => $item) {
             $index++;
-            $this->assertTrue($item instanceof RedisCacheItem);
+            $this->assertTrue($item instanceof ItemInterface);
             $this->assertTrue($item->isHit());
             $this->assertEquals('test'.$index, $key);
-
-            // NB: The value will become a string here!
-            $this->assertSame((string)$index, $item->get());
+            $this->assertEquals($index, $item->get());
         }
 
         $this->assertEquals(3, $index);
 
         $item = $items->getItem('test2');
-        $this->assertTrue($item instanceof RedisCacheItem);
+        $this->assertTrue($item instanceof ItemInterface);
         $this->assertEquals(2, $item->get());
 
         $pool->clear();
@@ -81,11 +76,11 @@ class RedisCacheTest extends \PHPUnit_Framework_TestCase
     /**
      * Test valid TTL values set
      *
-     * @small
+     * @dataProvider poolProvider
+     * @param PoolInterface $pool
      */
-    public function testValidTtl()
+    public function testValidTtl(PoolInterface $pool)
     {
-        $pool = new RedisCachePool();
         $item = $pool->getItem('test');
 
         $dt = new \DateTime();
@@ -101,17 +96,26 @@ class RedisCacheTest extends \PHPUnit_Framework_TestCase
     /**
      * Test invalid TTL values throw exceptions
      *
-     * @small
+     * @dataProvider poolProvider
+     * @param PoolInterface $pool
      * @expectedException \InvalidArgumentException
      */
-    public function testInvalidTtl()
+    public function testInvalidTtl(PoolInterface $pool)
     {
-        $pool = new RedisCachePool();
         $item = $pool->getItem('test');
-
         $item->set('value', "hiya!");
     }
 
-
+    /**
+     * Provides all pool implementations
+     *
+     * @return array
+     */
+    public function poolProvider()
+    {
+        return [
+            [new EphemeralCachePool()],
+            [new RedisCachePool()],
+        ];
+    }
 }
- 

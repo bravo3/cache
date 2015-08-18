@@ -33,7 +33,11 @@ class RedisCacheItem implements ItemInterface
      */
     protected $loaded = false;
 
-    function __construct(RedisCachePool $pool, $key)
+    /**
+     * @param RedisCachePool $pool
+     * @param string         $key
+     */
+    public function __construct(RedisCachePool $pool, $key)
     {
         $this->pool = $pool;
         $this->key  = $key;
@@ -217,6 +221,4 @@ class RedisCacheItem implements ItemInterface
 
         return $pipeline->execute();
     }
-
 }
- 

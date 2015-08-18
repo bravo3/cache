@@ -22,9 +22,35 @@ implementations based on the interfaces - will need to be refactored.
 
 A new major version number will be applied to this library when PSR-6 passes.
 
-Completed Implementations
-=========================
-The below implementations are complete and working.
+Usage
+=====
+Basic usage:
+
+    $pool = new RedisCachePool('tcp://10.0.0.1:6379');
+    $item = $pool->get('foo');
+    
+    $item->hit();       // Check if the retrieval was a cache hit
+    $item->exists();    // Check if the entry exists in the datbase
+    $item->get();       // Pull the value from the database
+    $item->set('bar');  // Save to cache
+    $item->delete();    // Remove from cache
+    
+    $items = $pool->getItems(['test1', 'test2', 'test3']);  // Get a collection of items
+    
+Using a TTL can be done with a `\DateTime` object or a integer offset in seconds:
+
+    $item = $pool->getItem('foo');
+    
+    $dt = new \DateTime();
+    $dt->modify('+10 seconds');
+    
+    $item->set('bar', $dt);   // Set TTL with a \DateTime object
+    $item->set('bar', null);  // Clear the TTL, item never expires
+    $item->set('bar', 10);    // Set the TTL to 10 seconds
+
+
+Implementations
+===============
 
 Ephemeral
 ---------
@@ -34,26 +60,17 @@ the volatility of your data.
 
 Redis
 -----
-Redis support is fully integrated via the Predis library. You'll need to add `"predis/predis": "~0.8"` to your
-`composer.json` file to enable Redis support.
+Redis support is fully integrated via the Predis library. 
 
-Planned Implementations
-=======================
-The below implementations planned, and will be available in the future (contributions welcome!).
+To enable Redis support:
 
-Doctrine
---------
-Doctrine support is planned by providing an entity manager to the constructor. This allows for seamless integration
-into your data model with your current Doctrine application.
+    composer require predis/predis
 
-Consider: native PDO as well?
+Bravo3/ORM
+----------
+You can use any Bravo3/ORM driver to connect a cache connection, this is useful to maintain a single source to your
+database.
 
-DynamoDB
---------
-Using the AWS SDK, access to scalable NoSQL databases is a valid use-case for caching.
+To enable ORM support:
 
-Consider: SimpleDB?
-
-Memcached
----------
-Good ol' memcache. Consider which PHP module to use, should this be abstracted?
+    composer require bravo3/orm

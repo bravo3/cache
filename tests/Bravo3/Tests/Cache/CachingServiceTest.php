@@ -7,10 +7,6 @@ use Bravo3\Tests\Cache\Resources\CachingService;
 
 class Test extends \PHPUnit_Framework_TestCase
 {
-
-    /**
-     * @small
-     */
     public function testCachingService()
     {
         $service = new CachingService();
@@ -28,9 +24,6 @@ class Test extends \PHPUnit_Framework_TestCase
         $this->assertEquals('value', $new_item->get());
     }
 
-    /**
-     * @small
-     */
     public function testSetPool()
     {
         $service = new CachingService();
@@ -39,7 +32,4 @@ class Test extends \PHPUnit_Framework_TestCase
         $service->setCachePool($pool);
         $this->assertTrue($service->getCachePool() instanceof EphemeralCachePool);
     }
-
-
 }
- 

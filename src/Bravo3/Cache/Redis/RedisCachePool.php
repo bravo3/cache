@@ -1,7 +1,9 @@
 <?php
 namespace Bravo3\Cache\Redis;
 
+use Bravo3\Cache\InvalidArgumentException;
 use Bravo3\Cache\ItemCollection;
+use Bravo3\Cache\ItemInterface;
 use Bravo3\Cache\PoolInterface;
 use Predis\Client;
 
@@ -12,7 +14,6 @@ use Predis\Client;
  */
 class RedisCachePool implements PoolInterface
 {
-
     /**
      * @var Client
      */
@@ -62,7 +63,7 @@ class RedisCachePool implements PoolInterface
      * @param Client $client
      * @return $this
      */
-    public function setClient($client)
+    public function setClient(Client $client)
     {
         $this->client = $client;
         return $this;
@@ -79,20 +80,15 @@ class RedisCachePool implements PoolInterface
         return $this->client;
     }
 
-
     /**
      * Returns a Cache Item representing the specified key.
      *
      * This method must always return an ItemInterface object, even in case of
      * a cache miss. It MUST NOT return null.
      *
-     * @param string $key
-     *   The key for which to return the corresponding Cache Item.
-     * @return \Bravo3\Cache\ItemInterface
-     *   The corresponding Cache Item.
-     * @throws \Bravo3\Cache\InvalidArgumentException
-     *   If the $key string is not a legal value a \Bravo3\Cache\InvalidArgumentException
-     *   MUST be thrown.
+     * @param string $key The key for which to return the corresponding Cache Item.
+     * @return ItemInterface  The corresponding Cache Item.
+     * @throws InvalidArgumentException
      */
     public function getItem($key)
     {
@@ -103,12 +99,8 @@ class RedisCachePool implements PoolInterface
     /**
      * Returns a traversable set of cache items.
      *
-     * @param array $keys
-     *   An indexed array of keys of items to retrieve.
+     * @param array $keys An indexed array of keys of items to retrieve.
      * @return ItemCollection
-     *   A traversable collection of Cache Items in the same order as the $keys
-     *   parameter, keyed by the cache keys of each item. If no items are found
-     *   an empty Traversable collection will be returned.
      */
     public function getItems(array $keys)
     {
@@ -129,14 +121,11 @@ class RedisCachePool implements PoolInterface
      * Deletes all items in the pool.
      *
      * @return PoolInterface
-     *   The current pool.
      */
     public function clear()
     {
         $this->init();
         $this->client->__call('flushdb', []);
+        return $this;
     }
-
-
 }
- 
