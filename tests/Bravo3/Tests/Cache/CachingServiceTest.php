@@ -5,7 +5,7 @@ namespace Bravo3\Tests\Cache;
 use Bravo3\Cache\Ephemeral\EphemeralCachePool;
 use Bravo3\Tests\Cache\Resources\CachingService;
 
-class Test extends \PHPUnit_Framework_TestCase
+class CacheTest extends \PHPUnit_Framework_TestCase
 {
     public function testCachingService()
     {

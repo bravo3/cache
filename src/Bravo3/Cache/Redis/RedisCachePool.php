@@ -7,6 +7,7 @@ use Bravo3\Cache\ItemInterface;
 use Bravo3\Cache\PoolInterface;
 use Predis\Client;
 
+
 /**
  * A PoolInterface wrapper for the Predis library
  *
@@ -35,7 +36,7 @@ class RedisCachePool implements PoolInterface
      * @param string|array|Client $params Predis client or params, defaults to 'tcp://10.0.0.1:6379'
      * @param mixed               $options
      */
-    function __construct($params = null, $options = null)
+    public function __construct($params = null, $options = null)
     {
         if ($params instanceof Client) {
             $this->client  = $params;

@@ -3,6 +3,7 @@ namespace Bravo3\Cache\Redis;
 
 use Bravo3\Cache\ItemInterface;
 
+
 /**
  * Cache items belonging to a Redis pool
  */

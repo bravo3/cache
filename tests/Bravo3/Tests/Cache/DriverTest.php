@@ -1,15 +1,17 @@
 <?php
-namespace Bravo3\Tests\Cache\Redis;
+namespace Bravo3\Tests\Cache;
 
 use Bravo3\Cache\Ephemeral\EphemeralCachePool;
 use Bravo3\Cache\ItemCollection;
 use Bravo3\Cache\ItemInterface;
+use Bravo3\Cache\Orm\OrmCachePool;
 use Bravo3\Cache\PoolInterface;
 use Bravo3\Cache\Redis\RedisCachePool;
+use Bravo3\Orm\Drivers\Filesystem\FilesystemDriver;
+use Bravo3\Orm\Drivers\Filesystem\Io\NativeIoDriver;
+use Bravo3\Orm\Mappers\Annotation\AnnotationMapper;
+use Bravo3\Orm\Services\EntityManager;
 
-/**
- * @group redis
- */
 class DriverTest extends \PHPUnit_Framework_TestCase
 {
     /**
@@ -113,9 +115,15 @@ class DriverTest extends \PHPUnit_Framework_TestCase
      */
     public function poolProvider()
     {
+        $em = EntityManager::build(
+            new FilesystemDriver(new NativeIoDriver(sys_get_temp_dir().'/bravo3-cache/')),
+            new AnnotationMapper()
+        );
+
         return [
             [new EphemeralCachePool()],
             [new RedisCachePool()],
+            [new OrmCachePool($em)],
         ];
     }
 }

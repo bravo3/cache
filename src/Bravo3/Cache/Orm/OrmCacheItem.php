@@ -1,21 +1,70 @@
 <?php
-namespace Bravo3\Cache\Ephemeral;
+namespace Bravo3\Cache\Orm;
 
 use Bravo3\Cache\ItemInterface;
+use Bravo3\Cache\Orm\Entity\CacheEntityInterface;
+use Bravo3\Orm\Exceptions\NotFoundException;
+
 
 /**
- * Non-persistent ephemeral cache storage
+ * Bravo3/ORM cache storage
  */
-class EphemeralCacheItem implements ItemInterface
+class OrmCacheItem implements ItemInterface
 {
+    /**
+     * @var OrmCachePool
+     */
+    protected $pool;
+
+    /**
+     * @var string
+     */
     protected $key;
+
+    /**
+     * @var string
+     */
     protected $value = null;
-    protected $ttl = null;
+
+    /**
+     * @var bool
+     */
     protected $hit = false;
 
-    public function __construct($key)
+    /**
+     * @var bool
+     */
+    protected $loaded = false;
+
+    /**
+     * @param OrmCachePool $pool
+     * @param string       $key
+     */
+    public function __construct(OrmCachePool $pool, $key)
     {
-        $this->key = $key;
+        $this->pool = $pool;
+        $this->key  = $key;
+    }
+
+    /**
+     * Makes an exists and get call to the redis server
+     */
+    protected function init()
+    {
+        if ($this->loaded) {
+            return;
+        }
+
+        try {
+            /** @var CacheEntityInterface $entity */
+            $entity = $this->pool->getEntityManager()->retrieve($this->pool->getEntityClass(), $this->key, false);
+
+            $this->hit   = true;
+            $this->value = $entity->getValue();
+        } catch (NotFoundException $e) {
+            $this->hit   = false;
+            $this->value = null;
+        }
     }
 
     /**
@@ -46,6 +95,7 @@ class EphemeralCacheItem implements ItemInterface
      */
     public function get()
     {
+        $this->init();
         return $this->value;
     }
 
@@ -77,18 +127,22 @@ class EphemeralCacheItem implements ItemInterface
      */
     public function set($value = null, $ttl = null)
     {
-        $this->value = $value;
+        $this->value  = $value;
+        $this->hit    = true;
+        $this->loaded = true;
+
         if ($ttl instanceof \DateTime) {
-            $this->ttl = $ttl;
+            $exp = (int)$ttl->format('U') - time();
         } elseif (is_int($ttl)) {
-            $this->ttl = new \DateTime(date('c', time() + $ttl));
+            $exp = $ttl;
         } elseif (is_null($ttl)) {
-            $this->ttl = null;
+            $exp = null;
         } else {
             throw new \InvalidArgumentException("TTL must be a DateTime object or an integer");
         }
 
-        $this->hit = true;
+        $entity = $this->createEntity($value);
+        $this->pool->getEntityManager()->persist($entity, $exp)->flush();
         return true;
     }
 
@@ -103,6 +157,7 @@ class EphemeralCacheItem implements ItemInterface
      */
     public function isHit()
     {
+        $this->init();
         return $this->hit;
     }
 
@@ -114,22 +169,42 @@ class EphemeralCacheItem implements ItemInterface
      */
     public function delete()
     {
-        $this->value = null;
-        $this->ttl   = new \DateTime();
-        $this->hit   = false;
+        $this->value  = null;
+        $this->hit    = false;
+        $this->loaded = false;
+
+        $entity = $this->createEntity();
+        $this->pool->getEntityManager()->delete($entity)->flush();
     }
 
     /**
-     * Confirms if the cache item exists in the cache.
+     * Tests if the value exists in the cache
      *
-     * Note: This method MAY avoid retrieving the cached value for performance
-     * reasons, which could result in a race condition between exists() and get().
+     * This has no value over #get() or #isHit() as the data needs to be retrieved from the ORM to test its existance.
      *
-     * @return bool
-     *  True if item exists in the cache, false otherwise.
+     * @return bool True if item exists in the cache, false otherwise.
      */
     public function exists()
     {
-        return $this->hit;
+        $this->init();
+        return $this->isHit();
+    }
+
+    /**
+     * Creates an entity object
+     *
+     * @param string $value
+     * @return CacheEntityInterface
+     */
+    protected function createEntity($value = null)
+    {
+        $class = $this->pool->getEntityClass();
+
+        /** @var CacheEntityInterface $entity */
+        $entity = new $class();
+        $entity->setKey($this->key);
+        $entity->setValue($value);
+
+        return $entity;
     }
 }

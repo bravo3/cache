@@ -29,9 +29,11 @@ Basic usage:
     $pool = new RedisCachePool('tcp://10.0.0.1:6379');
     $item = $pool->get('foo');
     
-    $item->hit();       // Check if the retrieval was a cache hit
-    $item->exists();    // Check if the entry exists in the datbase
     $item->get();       // Pull the value from the database
+    $item->isHit();     // Check if the retrieval was a cache hit
+    
+    $item->exists();    // Check if the entry exists in the datbase (MAY avoid actually retrieving the value)
+    
     $item->set('bar');  // Save to cache
     $item->delete();    // Remove from cache
     
